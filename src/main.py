@@ -1,8 +1,7 @@
-import argparse
+import os
 import json
 import logging
 from datetime import datetime, timedelta
-
 
 from client import AimHarderClient
 from exceptions import (
@@ -77,29 +76,18 @@ def main(
 
 
 if __name__ == "__main__":
-    """
-    python src/main.py
-     --email your.email@mail.com
-     --password 1234
-     --box-name lahuellacrossfit
-     --box-id 3984
-     --booking-goal '{"0":{"time": "1815", "name": "Provenza"}}'
-     --family-id 123456
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--email", required=True, type=str)
-    parser.add_argument("--password", required=True, type=str)
-    parser.add_argument("--booking-goals", required=True, type=json.loads)
-    parser.add_argument("--box-name", required=True, type=str)
-    parser.add_argument("--box-id", required=True, type=int)
-    parser.add_argument("--days-in-advance", required=True, type=int, default=3)
-    parser.add_argument(
-        "--family-id",
-        required=False,
-        type=int,
-        default=None,
-        help="ID of the family member (optional)",
-    )
-    args = parser.parse_args()
-    input = {key: value for key, value in args.__dict__.items() if value != ""}
-    main(**input)
+    email = os.environ["AH_USERNAME"]
+    password = os.environ["AH_PASSWORD"]
+    box_id = int(os.environ["AH_BOX_ID"])
+    box_name = os.environ["AH_BOX_NAME"]
+
+    booking_goals = {
+        "0": {"time": "0700", "name": "Bee Power"},  # Monday
+        "2": {"time": "0700", "name": "Bee Power"},  # Wednesday
+        "4": {"time": "0700", "name": "Bee Power"},  # Friday
+    }
+
+    days_in_advance = 1  # You can adjust if needed
+    family_id = None
+
+    main(email, password, booking_goals, box_name, box_id, days_in_advance, family_id)
