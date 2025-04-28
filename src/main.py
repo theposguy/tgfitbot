@@ -1,27 +1,10 @@
-import os
+import argparse
 import json
 import logging
-
-import requests
-
-def send_telegram_message(message):
-    telegram_chat_id = os.environ.get("AH_CHAT_ID")
-    telegram_token = os.environ.get("AH_TELEGRAM_BOT_TOKEN")
-    if not telegram_chat_id or not telegram_token:
-        return
-    url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
-    payload = {
-        "chat_id": telegram_chat_id,
-        "text": message,
-        "parse_mode": "Markdown",
-    }
-    try:
-        requests.post(url, data=payload)
-    except Exception as e:
-        logger.error(f"Failed to send Telegram message: {e}")
-
+import os
 from datetime import datetime, timedelta
 
+import requests
 from client import AimHarderClient
 from exceptions import (
     NoBookingGoal,
@@ -38,6 +21,22 @@ console_handler.setLevel(logging.INFO)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
+
+
+# Function to send telegram message
+def send_telegram_message(text):
+    telegram_token = os.environ["AH_TELEGRAM_BOT_TOKEN"]
+    telegram_chat_id = os.environ["AH_CHAT_ID"]
+    url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
+    payload = {
+        "chat_id": telegram_chat_id,
+        "text": text
+    }
+    try:
+        response = requests.post(url, data=payload)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        logger.error(f"Failed to send telegram message: {e}")
 
 
 def get_booking_goal_time(day: datetime, booking_goals):
@@ -74,31 +73,36 @@ def main(
         target_time, target_name = get_booking_goal_time(target_day, booking_goals)
     except NoBookingGoal as e:
         logger.info(str(e))
+        send_telegram_message(f"⚠️ {str(e)}")
         return
     client = AimHarderClient(
         email=email, password=password, box_id=box_id, box_name=box_name
     )
     classes = client.get_classes(target_day, family_id)
-    _class = get_class_to_book(classes, target_time, target_name)
+    try:
+        _class = get_class_to_book(classes, target_time, target_name)
+    except (BoxClosed, NoBookingGoal) as e:
+        logger.info(str(e))
+        send_telegram_message(f"⚠️ {str(e)}")
+        return
+
     if _class["bookState"] == 1:
         logger.info("Class already booked. Nothing to do")
-send_telegram_message("⚡ Ya reservaste esta clase!")
-return
-
+        send_telegram_message("⚡ You are already booked for your class!")
         return
+
     try:
         client.book_class(target_day, _class["id"], family_id)
     except BookingFailed as e:
         if str(e) == MESSAGE_ALREADY_BOOKED_FOR_TIME:
             logger.error("You are already booked for this time")
-send_telegram_message("⚠️ Ya estás reservado para esta hora")
-
+            send_telegram_message("⚠️ Attempted booking but you were already reserved!")
             return
         else:
             raise e
-    logger.info("Class booked successfully")
-send_telegram_message("✅ Clase reservada!")
 
+    logger.info("Class booked successfully")
+    send_telegram_message("✅ Successfully booked your class!")
 
 
 if __name__ == "__main__":
@@ -107,13 +111,24 @@ if __name__ == "__main__":
     box_id = int(os.environ["AH_BOX_ID"])
     box_name = os.environ["AH_BOX_NAME"]
 
-    booking_goals = {
-        "0": {"time": "0700", "name": "Bee Power"},  # Monday
-        "2": {"time": "0700", "name": "Bee Power"},  # Wednesday
-        "4": {"time": "0700", "name": "Bee Power"},  # Friday
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--booking-goals", required=True, type=json.loads)
+    parser.add_argument("--days-in-advance", required=True, type=int, default=3)
+    parser.add_argument(
+        "--family-id",
+        required=False,
+        type=int,
+        default=None,
+        help="ID of the family member (optional)",
+    )
+    args = parser.parse_args()
+    input = {
+        "email": email,
+        "password": password,
+        "booking_goals": args.booking_goals,
+        "box_name": box_name,
+        "box_id": box_id,
+        "days_in_advance": args.days_in_advance,
+        "family_id": args.family_id,
     }
-
-    days_in_advance = 1  # You can adjust if needed
-    family_id = None
-
-    main(email, password, booking_goals, box_name, box_id, days_in_advance, family_id)
+    main(**input)
