@@ -1,6 +1,25 @@
 import os
 import json
 import logging
+
+import requests
+
+def send_telegram_message(message):
+    telegram_chat_id = os.environ.get("AH_CHAT_ID")
+    telegram_token = os.environ.get("AH_TELEGRAM_BOT_TOKEN")
+    if not telegram_chat_id or not telegram_token:
+        return
+    url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
+    payload = {
+        "chat_id": telegram_chat_id,
+        "text": message,
+        "parse_mode": "Markdown",
+    }
+    try:
+        requests.post(url, data=payload)
+    except Exception as e:
+        logger.error(f"Failed to send Telegram message: {e}")
+
 from datetime import datetime, timedelta
 
 from client import AimHarderClient
@@ -63,16 +82,23 @@ def main(
     _class = get_class_to_book(classes, target_time, target_name)
     if _class["bookState"] == 1:
         logger.info("Class already booked. Nothing to do")
+send_telegram_message("⚡ Ya reservaste esta clase!")
+return
+
         return
     try:
         client.book_class(target_day, _class["id"], family_id)
     except BookingFailed as e:
         if str(e) == MESSAGE_ALREADY_BOOKED_FOR_TIME:
             logger.error("You are already booked for this time")
+send_telegram_message("⚠️ Ya estás reservado para esta hora")
+
             return
         else:
             raise e
     logger.info("Class booked successfully")
+send_telegram_message("✅ Clase reservada!")
+
 
 
 if __name__ == "__main__":
