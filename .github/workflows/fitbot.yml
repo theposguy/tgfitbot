@@ -1,8 +1,8 @@
-name: Run Fitbot daily
+name: Fitbot AutoBooking
 
 on:
   schedule:
-    - cron: '58 4 * * *'  # every day at 4:58 AM UTC (12:58 AM Venezuela)
+    - cron: '0 13 * * 0,2,4'  # Sunday, Tuesday, Thursday at 9:00 AM Venezuela time (UTC-4)
   workflow_dispatch:  # allows manual run from GitHub UI
 
 jobs:
@@ -19,7 +19,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install beautifulsoup4 requests
+          python -m pip install --upgrade pip
+          pip install beautifulsoup4 requests
 
       - name: Run Fitbot
         env:
@@ -30,4 +31,6 @@ jobs:
           AH_TELEGRAM_BOT_TOKEN: ${{ secrets.AH_TELEGRAM_BOT_TOKEN }}
           AH_CHAT_ID: ${{ secrets.AH_CHAT_ID }}
         run: |
-          python src/main.py
+          python src/main.py \
+            --booking-goals '{"0": {"time": "0700", "name": "Bee Power"}, "2": {"time": "0700", "name": "Bee Power"}, "4": {"time": "0700", "name": "Bee Power"}}' \
+            --days-in-advance 1
