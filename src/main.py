@@ -88,12 +88,7 @@ def main(
 
     if _class["bookState"] == 1:
         logger.info("Class already booked. Nothing to do")
-        send_telegram_message(    
-    f"👋 *Hola!* \n\n"
-    f"✅ *Tu clase fue reservada exitosamente!*\n\n"
-    f"🏋️ *Clase:* {target_name}\n\n"
-    f"🔥 ¡Echale bolas! 💪"
-        )
+        send_telegram_message("⚡ Ya estabas reservado para esta clase!")
         return
 
     try:
@@ -108,9 +103,9 @@ def main(
 
     logger.info("Class booked successfully")
     send_telegram_message(    
-    f"👋 *Hola!* \n\n"
-    f"✅ *Tu clase fue reservada exitosamente!*\n\n"
-    f"🏋️ *Clase:* {target_name}\n\n"
+    f"👋 Hola!"
+    f"✅ Tu clase fue reservada exitosamente!"
+    f"🏋️ Clase: {target_name}"
     f"🔥 ¡Echale bolas! 💪"
     )
 
