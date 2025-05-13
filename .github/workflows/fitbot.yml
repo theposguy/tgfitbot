@@ -2,7 +2,7 @@ name: Fitbot AutoBooking
 
 on:
   schedule:
-    - cron: '0 13 * * 0,2,4'  # Sunday, Tuesday, Thursday at 9:00 AM Venezuela time (UTC-4)
+    - cron: '45 12 * * 0,2,4'  # Sunday, Tuesday, Thursday at 8:45 AM Venezuela time (UTC-4)
   workflow_dispatch:  # allows manual run from GitHub UI
 
 jobs:
