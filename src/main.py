@@ -88,7 +88,7 @@ def main(
 
     if _class["bookState"] == 1:
         logger.info("Class already booked. Nothing to do")
-        send_telegram_message("⚡ You are already booked for your class!")
+        send_telegram_message("⚡ Ya estabas reservado para esta clase!")
         return
 
     try:
@@ -96,13 +96,13 @@ def main(
     except BookingFailed as e:
         if str(e) == MESSAGE_ALREADY_BOOKED_FOR_TIME:
             logger.error("You are already booked for this time")
-            send_telegram_message("⚠️ Attempted booking but you were already reserved!")
+            send_telegram_message("⚠️ Intente reservar, pero ya habias reservado!")
             return
         else:
             raise e
 
     logger.info("Class booked successfully")
-    send_telegram_message("✅ Successfully booked your class!")
+    send_telegram_message("✅ Tu clase fue reservada!")
 
 
 if __name__ == "__main__":
