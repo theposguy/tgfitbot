@@ -102,7 +102,12 @@ def main(
             raise e
 
     logger.info("Class booked successfully")
-    send_telegram_message("✅ Tu clase fue reservada!")
+    send_telegram_message(    
+    f"👋 *Hola!* \n\n"
+    f"✅ *Tu clase fue reservada exitosamente!*\n\n"
+    f"🏋️ *Clase:* {target_name}\n\n"
+    f"🔥 ¡Echale bolas! 💪"
+    )
 
 
 if __name__ == "__main__":
