@@ -1,7 +1,3 @@
-Thanks! Here's the **updated GitHub description** based on the new implementation, which runs via **GitHub Actions**, includes **Telegram notifications**, uses environment **secrets**, and removes Docker/Raspberry Pi dependencies:
-
----
-
 ## 🐝 FitBot · AimHarder Booking Automation
 
 Automated class booking bot for the [aimharder.com](https://www.aimharder.com) platform — now modernized to run entirely through **GitHub Actions** with **Telegram notifications**.
